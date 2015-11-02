@@ -1,8 +1,8 @@
 #这是一个Spark MLlib实例
 ##1 K-meams实例
 ###1.1 数据准备
-准备好如下数据：<br>
-0.0 0.0 0.0 1<br>
+**准备好如下数据：**<br>
+>0.0 0.0 0.0 1<br>
 0.1 0.1 0.1 1<br>
 0.2 0.2 0.2 1<br>
 9.0 9.0 9.0 0<br>
@@ -13,6 +13,7 @@
 0.2 0.2 0.2 1<br>
 0.1 0.2 0.2 1<br>
 8.9 9.5 9.1 0<br>
+
 命名为kmeans_data.txt，且上传到hdfs的/spark/mllib/data/路径中。<br>
 
 ###1.2 代码打包
@@ -22,6 +23,5 @@
 
 ###1.3 执行代码
 * 执行命令`./spark-submit --class com.blogchong.spark.mllib.Kmeans  --master spark://192.168.5.200:7077  --num-executors 2 --driver-memory 124m --executor-memory 124m --total-executor-cores 2  /root/spark/hcy/spark-example.jar`<br>
->需要注意的是，在设置core数以及内存时，最好先参考一下spark-master-id:8080页面中的worker参数，别超过了就行。<br>
+>//需要注意的是，在设置core数以及内存时，最好先参考一下spark-master-id:8080页面中的worker参数，别超过了就行。<br>
 * 跑完了，直接到输出文件夹下，找到代码的输出结果即可。<br>
-
