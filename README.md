@@ -57,3 +57,7 @@
 * 执行命令`./spark-submit --class com.blogchong.spark.mllib.AlsArithmetic  --master spark://192.168.5.200:7077  --num-executors 2 --driver-memory 124m --executor-memory 124m --total-executor-cores 2  /root/spark/hcy/spark-example.jar`<br>
 //需要注意的是，在设置core数以及内存时，最好先参考一下spark-master-id:8080页面中的worker参数，别超过了就行。<br>
 * 跑完了，直接到输出文件夹下，找到代码的输出结果即可。<br>
+
+###1.4 附加说明
+>在实际的调试过程中，我们会把ALS的几个重要参数，比如迭代次数，比如lambda值等，设置成一个范围，然后进行逐步调优，当MSE值，也就是均根方差值最小时，这个模型即我们需要的训练模型。<br>
+
