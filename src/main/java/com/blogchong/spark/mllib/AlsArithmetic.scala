@@ -2,7 +2,7 @@ package com.blogchong.spark.mllib
 
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.mllib.recommendation.{MatrixFactorizationModel, ALS, Rating}
+import org.apache.spark.mllib.recommendation.{ALS, Rating}
 
 /**
  * Author:  blogchong
