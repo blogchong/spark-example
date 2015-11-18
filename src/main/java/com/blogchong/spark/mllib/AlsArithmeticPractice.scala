@@ -3,7 +3,7 @@ package com.blogchong.spark.mllib
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.mllib.recommendation.{ALS, MatrixFactorizationModel, Rating}
-import org.apache.spark.rdd.RDD
+import org.apache.spark.rdd._
 import scala.io.Source
 
 /**
@@ -136,12 +136,11 @@ object AlsArithmeticPractice {
 
     //推荐前十部最感兴趣的电影,注意需要剔除该用户已经评分的电影，即去重
     val myRatedMovieIds = myRatings.map(_.product).toSet
-    
 
-    ############################
-    val candidates = sc.parallelize(movies.keys.filter(!myRatedMovieIds.contains(_)))
+    val candidates = sc.parallelize((movies.keys.filter(!myRatedMovieIds.contains(_))).asInstanceOf[Seq])
     //为用户0推荐十部movies
-    val recommendations:RDD[Rating] = bestModel.get.predict(candidates.map((0, _.rating)))
+    val candRDD = candidates.map((0, _)).asInstanceOf[RDD[(Int, Int)]]
+    val recommendations:RDD[Rating] = bestModel.get.predict(candRDD).collect.sortBy(_.rating).take(10)
     var i = 1
 
     println("Movies recommended for you:")
@@ -150,7 +149,6 @@ object AlsArithmeticPractice {
       println("%2d".format(i) + ": " + movies(r.product))
       i += 1
     }
-
 
     sc.stop()
   }
