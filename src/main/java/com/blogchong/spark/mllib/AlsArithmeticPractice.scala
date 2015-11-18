@@ -24,10 +24,12 @@ object AlsArithmeticPractice {
     val conf = new SparkConf().setAppName("ALSPractice")
     val sc = new SparkContext(conf)
 
-    val personalRatingsPath = "hdfs://192.168.5.200:9000/spark/mllib/data/als2/personalRatings.txt"
+    val personalRatingsPath = "/root/spark/spark-1.4.0-bin-hadoop2.6/data/mllib/als2/personalRatings.txt"
     val moviesPath = "hdfs://192.168.5.200:9000/spark/mllib/data/als2/movies.dat"
     val ratingsPath = "hdfs://192.168.5.200:9000/spark/mllib/data/als2/ratings.dat"
     val userPath = "hdfs://192.168.5.200:9000/spark/mllib/data/als2/users.dat"
+    val modelPath = "hdfs://192.168.5.200:9000/spark/mllib/result/als2/model"
+    val outPath = "hdfs://192.168.5.200:9000/spark/mllib/result/als2/data/recommendations"
 
     // 装载用户评分数据，该评分由评分器生成，即文件personalRatings.txt
     val myRatings = loadRatings(personalRatingsPath)
@@ -81,9 +83,9 @@ object AlsArithmeticPractice {
     println("NumTest:         [" + numTest + "]")
 
     //训练不同参数下的模型，并在校验集中验证，获取最佳参数下的模型
-    val ranks = List(8, 12)
-    val lambdas = List(0.1, 2.0)
-    val numIters = List(14, 18)
+    val ranks = List(5, 8, 12, 15)
+    val lambdas = List(0.1, 0.5, 5)
+    val numIters = List(8, 10, 20)
     //最佳模型变量
     var bestModel: Option[MatrixFactorizationModel] = None
     //最佳校验均根方差
@@ -100,7 +102,7 @@ object AlsArithmeticPractice {
       val validationRmse = computeRmse(model, validation, numValidation)
       count += 1
       println("==============参数尝试次数:[" + count + "]=======================")
-      println("RMSE(validation): [" + validation + "]")
+      println("RMSE(validation): [" + validationRmse + "]")
       println("rank:             [" + rank + "]")
       println("lambda:           [" + lambda + "]")
       println("numIter:          [" + numIter + "]")
@@ -137,18 +139,25 @@ object AlsArithmeticPractice {
     //推荐前十部最感兴趣的电影,注意需要剔除该用户已经评分的电影，即去重
     val myRatedMovieIds = myRatings.map(_.product).toSet
 
-    val candidates = sc.parallelize((movies.keys.filter(!myRatedMovieIds.contains(_))).asInstanceOf[Seq])
+    val candidates = movies.keys.filter(!myRatedMovieIds.contains(_))
+
     //为用户0推荐十部movies
-    val candRDD = candidates.map((0, _)).asInstanceOf[RDD[(Int, Int)]]
-    val recommendations:RDD[Rating] = bestModel.get.predict(candRDD).collect.sortBy(_.rating).take(10)
+    val candRDD: RDD[(Int, Int)] = candidates.map((0, _))
+    val recommendations:RDD[Rating] = bestModel.get.predict(candRDD) //.collect.sortBy(_.rating).take(10)
+    val recommendations_ = recommendations.collect().sortBy(-_.rating).take(10)
     var i = 1
 
     println("Movies recommended for you:")
-    recommendations.foreach {
+    recommendations_.foreach {
       r =>
-      println("%2d".format(i) + ": " + movies(r.product))
+      println("%2d".format(i) + ": [" + r.product + "]")
       i += 1
     }
+
+    //保存结果
+    recommendations.sortBy(-_.rating).saveAsTextFile(outPath)
+    //保存模型文件
+    bestModel.get.save(sc, modelPath)
 
     sc.stop()
   }
@@ -163,6 +172,7 @@ object AlsArithmeticPractice {
     }.filter(_.rating > 0.0)
     if(ratings.isEmpty){
       sys.error("No ratings provided.")
+      ratings.toSeq
     }else{
       ratings.toSeq
     }
