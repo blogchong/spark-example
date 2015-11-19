@@ -4,5 +4,5 @@
 /.cache
 /.settings
 /logs
-/.idea
+.idea/*
 .idea/workspace.xml
