@@ -121,3 +121,6 @@
 >对于每次尝试的结果直接打印，最终给用户0推荐的结果按降序保存在/spark/mllib/result/als2/data/recommendations，模型文件保存在/spark/mllib/result/als2/model。
 
 
+###4 LDA复杂实例 
+* 执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.CSDN.LDAModelBuild --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 6G --driver-memory 6G --num-executors 3 --executor-cores 3 --jars /root/hcyLda/spark-example-1.0-SNAPSHOT.jar XX PdataPath /hcy/lda/train/part-r-00000-write PmodelPath /hcy/lda/model PtopicSize 50 PmaxIterations 50 PwordsPath /hcy/lda/train/extract_index.dic PsaveVector true > ~/hcyLda/20151219.log 2>&1`
+

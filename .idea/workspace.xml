@@ -38,10 +38,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="LDAModelBuild.scala" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="LDAModelBuild.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/blogchong/spark/mllib/advance/CSDN/LDAModelBuild.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.79710144" vertical-offset="1617" max-vertical-offset="4056">
+            <state vertical-scroll-proportion="-7.983871" vertical-offset="1617" max-vertical-offset="4056">
               <caret line="88" column="42" selection-start-line="88" selection-start-column="42" selection-end-line="88" selection-end-column="42" />
               <folding>
                 <element signature="e#48#115#0" expanded="true" />
@@ -60,14 +60,14 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="README.md" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="README.md" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/README.md">
-          <provider editor-type-id="MarkdownPreviewEditor">
+          <provider selected="true" editor-type-id="MarkdownPreviewEditor">
             <state />
           </provider>
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-13.333333" vertical-offset="944" max-vertical-offset="3096">
-              <caret line="56" column="111" selection-start-line="56" selection-start-column="76" selection-end-line="56" selection-end-column="111" />
+          <provider editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="2504" max-vertical-offset="3168">
+              <caret line="124" column="563" selection-start-line="124" selection-start-column="563" selection-end-line="124" selection-end-column="563" />
               <folding />
             </state>
           </provider>
@@ -152,7 +152,6 @@
         <option value="$PROJECT_DIR$/src/main/java/com/blogchong/spark/mllib/ALS.scala" />
         <option value="$PROJECT_DIR$/src/main/java/com/blogchong/spark/mllib/AlsArithmetic.scala" />
         <option value="$PROJECT_DIR$/src/main/java/com/blogchong/spark/mllib/AlsArithmeticPractice.scala" />
-        <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/src/main/java/com/blogchong/spark/mllib/base/KmeansArithmetic.scala" />
         <option value="$PROJECT_DIR$/src/main/java/com/blogchong/spark/mllib/base/Word2Vec.scala" />
@@ -167,6 +166,7 @@
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/src/main/java/com/blogchong/spark/mllib/advance/CSDN/LDAModelBuildArgsParser.scala" />
         <option value="$PROJECT_DIR$/src/main/java/com/blogchong/spark/mllib/advance/CSDN/LDAModelBuild.scala" />
+        <option value="$PROJECT_DIR$/README.md" />
       </list>
     </option>
   </component>
@@ -1194,17 +1194,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/README.md">
-      <provider editor-type-id="MarkdownPreviewEditor">
-        <state />
-      </provider>
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-13.333333" vertical-offset="944" max-vertical-offset="3096">
-          <caret line="56" column="111" selection-start-line="56" selection-start-column="76" selection-end-line="56" selection-end-column="111" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/org/scala-lang/scala-library/2.10.3/scala-library-2.10.3-sources.jar!/scala/package.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="1165" max-vertical-offset="3312">
@@ -1239,11 +1228,22 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/blogchong/spark/mllib/advance/CSDN/LDAModelBuild.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.79710144" vertical-offset="1617" max-vertical-offset="4056">
+        <state vertical-scroll-proportion="-7.983871" vertical-offset="1617" max-vertical-offset="4056">
           <caret line="88" column="42" selection-start-line="88" selection-start-column="42" selection-end-line="88" selection-end-column="42" />
           <folding>
             <element signature="e#48#115#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="MarkdownPreviewEditor">
+        <state />
+      </provider>
+      <provider editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="2504" max-vertical-offset="3168">
+          <caret line="124" column="563" selection-start-line="124" selection-start-column="563" selection-end-line="124" selection-end-column="563" />
+          <folding />
         </state>
       </provider>
     </entry>
