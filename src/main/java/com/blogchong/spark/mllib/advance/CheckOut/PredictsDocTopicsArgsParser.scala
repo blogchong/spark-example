@@ -1,16 +1,15 @@
-package com.blogchong.spark.mllib.advance.CSDN
+package com.blogchong.spark.mllib.advance.CheckOut
 
 /**
- *
+ *处理传入的参数
  */
-class LDAModelBuildArgsParser {
+class PredictsDocTopicsArgsParser {
 
   var dataPath: String = null
   var modelPath: String = null
+  var topicsPath: String = null
   var wordsPath: String = null
-  var saveVector: Boolean = false
-  var topicSize: Int = 160
-  var maxIterations: Int = 160
+  var topicSize: Int = 100
 
   def parseArgs(inputArgs: List[String]): Unit = {
 
@@ -26,25 +25,17 @@ class LDAModelBuildArgsParser {
           modelPath = value
           println("PmodelPath: " + modelPath)
           args = tail
-
-        case ("PtopicSize") :: value :: tail =>
-          topicSize = value.toInt
-          println("PtopicSize: " + topicSize)
-          args = tail
-
-        case ("PmaxIterations") :: value :: tail =>
-          maxIterations = value.toInt
-          println("PmaxIterations: " + maxIterations)
-          args = tail
-
         case ("PwordsPath") :: value :: tail =>
           wordsPath = value
           println("PwordsPath: " + wordsPath)
           args = tail
-
-        case ("PsaveVector") :: value :: tail =>
-          saveVector = value.toBoolean
-          println("PsaveVector: " + saveVector)
+        case ("PtopicSize") :: value :: tail =>
+          topicSize = value.toInt
+          println("PtopicSize: " + topicSize)
+          args = tail
+        case ("PtopicsPath") :: value :: tail =>
+          topicsPath = value
+          println("PtopicsPath: " + topicsPath)
           args = tail
         case Nil =>
 
@@ -62,10 +53,9 @@ class LDAModelBuildArgsParser {
         |Options:
         |  PdataPath        the location where you put your training documents
         |  PmodelPath       the location where you save your model
-        |  PwordsPath       the location of dictionary
         |  PtopicSize       topic size of lda
-        |  PmaxIterations   maxIterations lda should run
-        |  PsaveVector      whether to save word vector and doc vector;default value is false
+        |  PwordsPath       the location of dictionary
+        |  PtopicsPath      the topics of documents
       """.stripMargin
   }
 }

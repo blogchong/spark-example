@@ -37,21 +37,14 @@ object LDAModelBuild {
         (word, label.toInt)
     }.collect.toMap
 
-    println("##########WORDSPATH:" + wordsPath)
-
-
     //将字典广播出去
     val keywordsDis = sc.broadcast(wordToLabelLocal.keys.toSet)
     val wordToLabelDis = sc.broadcast(wordToLabelLocal)
     val labelToWordToDis = sc.broadcast(wordToLabelLocal.map(f => (f._2, f._1)).toMap)
 
-    println("##########dataPath:" + dataPath)
-
     val dataPathCollections = dataPath.split(",")
 
     var data = sc.textFile(dataPathCollections(0))
-
-    println("##########dataPathCollections(0):" + dataPathCollections(0))
 
     if (dataPathCollections.length > 1) {
       dataPathCollections.takeRight(dataPathCollections.length - 1).foreach {
@@ -59,8 +52,6 @@ object LDAModelBuild {
           data = data.union(sc.textFile(k))
       }
     }
-
-    println("##########DATA.COUNT:" + data.count())
 
     //获取文档编号。每条内容的格式为<id>\t<word>\s<word>.... 其中id为文档的业务编号。我们会再生成一个
     //LDA需要的Long类型编号，并且对应
@@ -74,10 +65,6 @@ object LDAModelBuild {
 
     }.filter(f => f.sentence.length > 0)
 
-    println("##########DOCS.COUNT:" + docs.count())
-
-    println("##########wordToLabelDis.value.size:" + wordToLabelDis.value.size)
-
     //获得训练集，仅仅使用词频作为权重。把文档转化为向量
     val corpus = docs.map {
       f =>
@@ -89,8 +76,6 @@ object LDAModelBuild {
             (f.label, Vectors.sparse(50269, docVector))
       //        (f.label, Vectors.sparse(wordToLabelDis.value.size, docVector))
     }.repartition(20)
-
-    println("##########CORPUS.COUNT:" + corpus.count())
 
     //主题模型训练
     val topicSize = argsParser.topicSize
