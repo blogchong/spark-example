@@ -6,6 +6,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 import scala.collection.JavaConversions._
 import java.util.Date
 import com.blogchong.util.NewTime
+import java.util
 
 /**
  *
@@ -25,6 +26,7 @@ object PredictsDocTopics {
     val modelPath = argsParser.modelPath
     val wordsPath = argsParser.wordsPath
     val maxWordsTopic = argsParser.topicSize
+    val topicsPath = argsParser.topicsPath
 
     val conf = new SparkConf().setAppName("PredictsDocTopics")
     val sc = new SparkContext(conf)
@@ -46,6 +48,7 @@ object PredictsDocTopics {
     //将字典广播出去
     val keywordsDis = sc.broadcast(wordToLabelLocal.keys.toSet)
     val wordToLabelDis = sc.broadcast(wordToLabelLocal)
+    val wordToLabelDis2 = sc.broadcast(wordToLabelLocal2)
 
     val dataPathCollections = dataPath.split(",")
 
@@ -58,8 +61,11 @@ object PredictsDocTopics {
       }
     }
 
+    //存储docs中id与自动index，对应起来
+    val mapIdsIndex = new util.HashMap[Long, String]()
+
     //获取文档编号。每条内容的格式为<id>\t<word>\s<word>.... 其中id为文档的业务编号。我们会再生成一个
-    //LDA需要的Long类型编号，并且对应
+    //LDA需要的Long类型编号
     val docs = data.zipWithIndex.map(_.swap).
       map {
       f =>
@@ -69,6 +75,11 @@ object PredictsDocTopics {
         Doc(f._1, id, sentence.split("\\s+").filter(word => keywordsDis.value.contains(word)))
 
     }.filter(f => f.sentence.length > 0)
+
+    docs.map{
+      f=>
+      mapIdsIndex.put(f.label, f.id)
+    }
 
     //获得训练集，仅仅使用词频作为权重。把文档转化为向量
     val corpus = docs.map {
@@ -95,14 +106,13 @@ object PredictsDocTopics {
         val wordRdd = wordArray.zipWithIndex.sortBy(-_._1).take(maxWordsTopic)
         val topWords = wordRdd.map {
           case (weight, index) =>
-            s"${wordToLabelLocal2.get(index.toInt)}:${weight}}"
+            s"${wordToLabelDis2.value(index.toInt)}:${weight}"
         }
-        s"${docIndex}\t${topWords.mkString(" ")}"
-    }.saveAsTextFile(modelPath + "/" + saveTime + "/predictsTopics")
+        s"${mapIdsIndex.get(docIndex)}\t${topWords.mkString(" ")}"
+    }.saveAsTextFile(topicsPath + "/" + saveTime + "/predictsTopics")
 
     sc.stop()
   }
-
 
 }
 

@@ -1,6 +1,6 @@
 package com.blogchong.spark.mllib.advance.CSDN
 
-import org.apache.spark.mllib.clustering.{DistributedLDAModel, LDA}
+import org.apache.spark.mllib.clustering.{LocalLDAModel, DistributedLDAModel, LDA}
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.{SparkConf, SparkContext}
 import scala.collection.mutable
@@ -82,15 +82,18 @@ object LDAModelBuild {
     val ldaModel = new LDA().setK(topicSize).setMaxIterations(argsParser.maxIterations)
       .run(corpus).asInstanceOf[DistributedLDAModel]
 
-    //保存模型
+    //DistributedLDAModel转换为LocalLDAModel
+    val ldaModelLocal = ldaModel.toLocal
+
+    //保存模型，保存最原始的类型
     val dateDate = new Date
     val saveTime = NewTime.dateToString(dateDate, NewTime.`type`)
 
-    ldaModel.save(sc, modelPath + "/" + saveTime + "/model")
+    ldaModelLocal.save(sc, modelPath + "/" + saveTime + "/localLdaModel")
+    ldaModel.save(sc, modelPath + "/" + saveTime + "/distributedLDAModel")
 
     //存储文档数字编号和id的对应关系
     docs.map(f => s"${f.label},${f.id}").saveAsTextFile(modelPath + "/" + saveTime + "/docLabelToId")
-
 
     if (argsParser.saveVector) {
 
