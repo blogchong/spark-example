@@ -130,3 +130,11 @@
 > 利用上面训练得到的LocalLDAMoldel，进行新文档的主题预测求docs-topics矩阵，然后结合Model中已有的Topics-words矩阵，求docs-words矩阵
 
 * 测试执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.CheckOut.PredictsDocTopics --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 6G --driver-memory 6G --num-executors 1 --executor-cores 1 --jars /root/hcyLda/spark-example-1.0-SNAPSHOT.jar XX PdataPath /hcy/lda/data/test.data PmodelPath /hcy/lda/model/2015-12-23-23-32-00/localLdaModel PtopicsPath /hcy/lda/data PtopicSize 200 PwordsPath /hcy/lda/train/extract_index.dic > ~/hcyLda/201512231544.log 2>&1`
+
+##5 新词发现
+
+###执行命令  
+
+* 训练执行命令`./spark-submit --class com.blogchong.spark.mllib.newWord.GetNewWord --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 3G --driver-memory 3G --num-executors 1 --executor-cores 1 --jars /root/hcyLda/newWord/spark-example-1.0-SNAPSHOT.jar,/root/hcyLda/newWord/ansj_seg-0.9.jar,/root/hcyLda/newWord/tree_split-1.0.1.jar --driver-library-path /root/hcyLda/newWord/ansj_seg-0.9.jar /root/hcyLda/newWord/tree_split-1.0.1.jar /hcy/newWord/data/11 /hcy/newWord/result`  
+
+
