@@ -26,40 +26,53 @@ object GetNewWord {
     println("InputPath:" + inputPath)
     println("OutputPath:" + outputPath)
 
-    //发现工具初始化
-    val learnTool: LearnTool = new LTSerializa().learnTool
-    //获取初始数据
-    val input = sc.textFile(inputPath)
+    val list: List[Int] = List(1)
 
-    println("InputSize:" + input.count())
+    list.map {
+      k =>
+      //工具初始化
+      //    val learnTool: LearnTool = new LTSerializa().learnTool
+//        val learnTool = LTSerializa2.getTool
+        //获取初始数据
+        val input = sc.textFile(inputPath)
 
-    if (learnTool == null) {
-      println("learnTool is NULL!")
-    } else {
-      println("learnTool is not NULL!")
-    }
+        println("InputSize:" + input.count())
 
-    input.map {
-      f =>
-        val notes = f.split("\t")
-        val noteObj = notes(1).asInstanceOf[JSONObject]
-        NlpAnalysis.parse(noteObj.obj.get("title").toString, learnTool)
-        NlpAnalysis.parse(noteObj.obj.get("body").toString, learnTool)
-    }
+        if (LTSerializa2.getTool == null) {
+          println("learnTool is NULL!")
+        } else {
+          println("learnTool is not NULL!")
+        }
 
-    val newWords = learnTool.getTopTree(10000, TermNatures.NW)
+        input.map {
+          f =>
+            val notes = f.split("\t")
+            val noteObj = notes(1).asInstanceOf[JSONObject]
+            NlpAnalysis.parse(noteObj.obj.get("title").toString, LTSerializa2.getTool)
+            NlpAnalysis.parse(noteObj.obj.get("body").toString, LTSerializa2.getTool)
+        }
 
-    if (newWords == null) {
-      println("NewWords is NULL!")
-    } else {
-      println("NewWordsSize:" + newWords.size())
-      sc.parallelize(newWords.map(f => f.getKey).toSeq).saveAsTextFile(outputPath)
+        val newWords = LTSerializa2.getTool.getTopTree(100, TermNatures.NW)
+
+        if (newWords == null) {
+          println("NewWords is NULL!")
+        } else {
+          println("NewWordsSize:" + newWords.size())
+          sc.parallelize(newWords.map(f => f.getKey).toSeq).saveAsTextFile(outputPath)
+        }
     }
     sc.stop()
   }
 
+  object LTSerializa2 {
+    val learnTool2 = new LearnTool
+    def getTool = {
+      learnTool2
+    }
+  }
+
   class LTSerializa extends java.io.Serializable {
-    def learnTool = new LearnTool
+    val learnTool = new LearnTool
   }
 
 }

@@ -27,6 +27,13 @@
         <!--</dependency>-->
 
         <dependency>
+            <groupId>net.sf.json-lib</groupId>
+            <artifactId>json-lib</artifactId>
+            <version>2.4</version>
+            <classifier>jdk15</classifier>
+        </dependency>
+
+        <dependency>
             <groupId>org.ansj</groupId>
             <artifactId>ansj_seg</artifactId>
             <version>0.9</version>
