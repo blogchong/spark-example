@@ -39,7 +39,6 @@ object NGramSpark {
     println("=============>InputSize:" + input.size)
 
     //初始化用户字典
-
     val userDic = sc.textFile(userDicPath).map {
       f =>
         val notes = f.split("\t")
@@ -48,17 +47,21 @@ object NGramSpark {
         }
     }.collect.toSet
 
+    //设置TF/D阈值
+    val tdfThreshold = 2.5
+
     println("=============>UserDicSize:" + userDic.size)
 
     val mergeWordTFDMap = new util.HashMap[String, Double]()
-    val que_2: util.Queue[String] = new util.LinkedList[String]
-    val que_3: util.Queue[String] = new util.LinkedList[String]
 
     //进行词合并
     val mergeWordTFMap = new util.HashMap[String, Int]()
-//    val mergeWordTF2WordsMap = new util.HashMap[String, String]()
+    val mergeWordTF2WordsMap = new util.HashMap[String, String]()
     val mergeWordDMap = new util.HashMap[String, Int]()
-//    val wordMap = new util.HashMap[String, Int]()
+    val wordMap = new util.HashMap[String, Int]()
+
+    val que_2: util.Queue[String] = new util.LinkedList[String]
+    val que_3: util.Queue[String] = new util.LinkedList[String]
 
     var count = 0
     //统计总词数
@@ -86,16 +89,16 @@ object NGramSpark {
             replaceStr(f.getName.toLowerCase.trim).trim
         }.filter(f => f.length > 0).union(titleWords)
 
-//        //进行单个字词统计
-//        bodyWords.foreach {
-//          f =>
-//            wordCount = wordCount + 1
-//            if (wordMap.containsKey(f)) {
-//              wordMap.put(f, wordMap.get(f) + 1)
-//            } else {
-//              wordMap.put(f, 1)
-//            }
-//        }
+        //进行单个字词统计
+        bodyWords.foreach {
+          f =>
+            wordCount = wordCount + 1
+            if (wordMap.containsKey(f)) {
+              wordMap.put(f, wordMap.get(f) + 1)
+            } else {
+              wordMap.put(f, 1)
+            }
+        }
 
         //做两词合并
         bodyWords.foreach {
@@ -108,7 +111,7 @@ object NGramSpark {
               //判断是否在基本字典中
               if (!userDic.contains(newWord) && newWord.trim.size != 0) {
 //                //存储组合词和字词关系
-//                mergeWordTF2WordsMap.put(newWord2Words._1, newWord2Words._2)
+                mergeWordTF2WordsMap.put(newWord2Words._1, newWord2Words._2)
                 //存储词个数
                 if (mergeWordTFMap.containsKey(newWord)) {
                   mergeWordTFMap.put(newWord, mergeWordTFMap.get(newWord) + 1)
@@ -126,7 +129,7 @@ object NGramSpark {
               //判断是否在基本字典中
               if (!userDic.contains(newWord) && newWord.trim.size != 0) {
 //                //存储组合词和字词关系
-//                mergeWordTF2WordsMap.put(newWord2Words._1, newWord2Words._2)
+                mergeWordTF2WordsMap.put(newWord2Words._1, newWord2Words._2)
                 //存储词个数
                 if (mergeWordTFMap.containsKey(newWord)) {
                   mergeWordTFMap.put(newWord, mergeWordTFMap.get(newWord) + 1)
@@ -150,7 +153,7 @@ object NGramSpark {
               //判断是否在基本字典中
               if (!userDic.contains(newWord) && newWord.trim.size != 0) {
 //                //存储组合词和字词关系
-//                mergeWordTF2WordsMap.put(newWord2Words._1, newWord2Words._2)
+                mergeWordTF2WordsMap.put(newWord2Words._1, newWord2Words._2)
                 //存储词个数
                 if (mergeWordTFMap.containsKey(newWord)) {
                   mergeWordTFMap.put(newWord, mergeWordTFMap.get(newWord) + 1)
@@ -206,21 +209,21 @@ object NGramSpark {
     val saveTime = NewTime.dateToString(dateDate, NewTime.`type`)
 
     //存储基础分词之后的结果
-    sc.parallelize(output.toSeq).saveAsTextFile(outputPath + "/" + saveTime + "/splitwords")
+//    sc.parallelize(output.toSeq).saveAsTextFile(outputPath + "/" + saveTime + "/splitwords")
 
     //进行TF词频，文档排序输出
     val scTFMap = mergeWordTFMap.toSeq.sortBy {
       case (word, freq) => freq
     }.filter(_._2 > 1)
-    println("=============>MergeWordTFMapSize:" + scTFMap.size())
-    sc.parallelize(scTFMap).saveAsTextFile(outputPath + "/" + saveTime + "/tfNewWord")
+    println("=============>新词词频MergeWordTFMapSize:" + scTFMap.size())
+//    sc.parallelize(scTFMap).saveAsTextFile(outputPath + "/" + saveTime + "/tfNewWord")
 
     //进行文档频存储
     val scDMap = mergeWordDMap.toSeq.sortBy {
       case (word, freq) => freq
     }.filter(_._2 > 1)
-    println("=============>MergeWordDMapSize:" + scDMap.size())
-    sc.parallelize(scDMap).saveAsTextFile(outputPath + "/" + saveTime + "/dNewWord")
+    println("=============>新词文档频MergeWordDMapSize:" + scDMap.size())
+//    sc.parallelize(scDMap).saveAsTextFile(outputPath + "/" + saveTime + "/dNewWord")
 
     //进行平均词频计算
     scDMap.foreach {
@@ -233,36 +236,43 @@ object NGramSpark {
     //进行平均文档频计算存储
     val scTFDMap = mergeWordTFDMap.toSeq.sortBy {
       case (word, freq) => freq
-    }.filter(_._2 > 1)
-    println("=============>MergeWordTFDMapSize:" + scTFDMap.size())
+    }.filter(_._1.split("\\s").size == 1).filter(_._2 >= tdfThreshold)
+    println("=============>新词平均词频(过阈值过纯英文\\s组合之后)MergeWordTFDMapSize:" + scTFDMap.size())
     sc.parallelize(scTFDMap).saveAsTextFile(outputPath + "/" + saveTime + "/tfdNewWord")
 
-//    //计算单个字词的概率
-//    val wordRateMap = new util.HashMap[String, Double]()
-//    wordMap.foreach {
-//      f =>
-//        wordRateMap.put(f._1, f._2 / wordCount)
-//    }
-//    //计算组合词概率
-//    val wordTfdRateMap = new util.HashMap[String, Double]()
-//    scTFMap.foreach {
-//      f =>
-//        wordRateMap.put(f._1, f._2 / wordCount)
-//    }
-//    //计算组合词概率和 字词乘积和
-//    val proRate = new util.HashMap[String, Double]()
-//    mergeWordTF2WordsMap.filter(f=>scTFMap.contains(f._1)).foreach {
-//      f =>
-//        var rate : Double = 1.0
-//        f._2.split("\t").foreach{
-//          g =>
-//            rate = rate * wordRateMap.get(g)
-//        }
-//        proRate.put(f._1, wordTfdRateMap.get(f._1) / rate)
-//    }
-//
-//    //保存概率比
-//    sc.parallelize(proRate.toSeq).saveAsTextFile(outputPath + "/" + saveTime + "/proRate")
+    //////////////////////////////////计算凝固度////////////////////////////////////////////////////////////
+    //计算单个字词的概率
+    val wordRateMap = new util.HashMap[String, Double]()
+    wordMap.foreach {
+      f =>
+        wordRateMap.put(f._1, f._2 / wordCount)
+    }
+    println("=============>全量子词概率WordRateMapSize:" + wordRateMap.size())
+
+    //计算组合词概率，只计算过了TFD阈值的词
+    val wordTfdRateMap = new util.HashMap[String, Double]()
+    scTFDMap.foreach {
+      f =>
+        wordTfdRateMap.put(f._1, f._2 / wordCount)
+    }
+    println("=============>新词组合概率(过了TFD阈值)WordTfdRateMapSize:" + wordTfdRateMap.size())
+
+    //计算组合词概率和 字词乘积和
+    val proRate = new util.HashMap[String, Double]()
+    wordTfdRateMap.foreach{
+      f=>
+        var rate : Double = 1.0
+        mergeWordTF2WordsMap.get(f._1).split("\t").foreach{
+          g =>
+            rate = rate * wordRateMap.get(g)
+        }
+
+        proRate.put(f._1, wordTfdRateMap.get(f._1) / rate)
+    }
+    println("=============>计算组合词概率和子词乘积比值ProRateSize:" + proRate.size())
+
+    //保存概率比
+    sc.parallelize(proRate.toSeq).saveAsTextFile(outputPath + "/" + saveTime + "/proRate")
 
     sc.stop()
   }
@@ -280,7 +290,9 @@ object NGramSpark {
         ("", que_ret.mkString("\t"))
       } else {
         if (!CharUtil.isChinese(word1) && !CharUtil.isChinese(word2)) {
+          //暂时不处理多个英文词//s的组合
           (word1 + " " + word2, que_ret.mkString("\t"))
+//          ("", que_ret.mkString("\t"))
         } else {
           (word1 + word2, que_ret.mkString("\t"))
         }
@@ -299,7 +311,9 @@ object NGramSpark {
         (word1 + word2 + word3, que_ret.mkString("\t"))
       } else if (!CharUtil.isChinese(word1) && !CharUtil.isChinese(word2) && !CharUtil.isChinese(word3)
         && (!word2.equals("-") && !word2.equals("_"))) {
+        //暂时对于多个英文词不做处理
         (word1 + " " + word2 + " " + word3, que_ret.mkString("\t"))
+//        ("", que_ret.mkString("\t"))
       } else {
         (word1 + word2 + word3, que_ret.mkString("\t"))
       }
