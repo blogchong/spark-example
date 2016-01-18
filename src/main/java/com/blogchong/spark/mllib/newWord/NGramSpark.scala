@@ -1,16 +1,13 @@
 package com.blogchong.spark.mllib.newWord
 
 import org.apache.spark.{SparkContext, SparkConf}
-import scala.util.parsing.json.JSONObject
-import org.ansj.splitWord.analysis.{ToAnalysis, BaseAnalysis, NlpAnalysis}
-import org.ansj.domain.Term
+import org.ansj.splitWord.analysis.{ToAnalysis}
 import scala.collection.JavaConversions._
-import net.sf.json
 import java.util.Date
-import com.blogchong.util.NewTime
+import com.blogchong.util.{CharUtil, NewTime}
 import java.util.regex.Pattern
-import org.ansj.library.UserDefineLibrary
 import java.util
+import org.apache.log4j.Logger
 
 /**
  * Author:  blogchong
@@ -20,37 +17,55 @@ import java.util
  * Describe: NGram算法
  */
 object NGramSpark {
+
+  val logger = Logger.getLogger(NGramSpark.getClass)
+
   def main(args: Array[String]) {
 
     // 设置运行环境
-    val conf = new SparkConf().setAppName("ansj分词，存储起来")
+    val conf = new SparkConf().setAppName("ansj分词，新词发现")
     val sc = new SparkContext(conf)
 
     val userDicPath = args(0)
     val inputPath = args(1)
     val outputPath = args(2)
 
-    println("UserDicPath:" + userDicPath)
-    println("InputPath:" + inputPath)
-    println("OutputPath:" + outputPath)
+    println("=============>UserDicPath:" + userDicPath)
+    println("=============>InputPath:" + inputPath)
+    println("=============>OutputPath:" + outputPath)
 
     //输入
-    val input = sc.textFile(inputPath)
-    println("InputSize:" + input.count())
+    val input = sc.textFile(inputPath).collect()
+    println("=============>InputSize:" + input.size)
 
     //初始化用户字典
 
-    println("UserDicSize:" + input.count())
     val userDic = sc.textFile(userDicPath).map {
-      f=>
+      f =>
         val notes = f.split("\t")
-        if (notes.size == 3){
+        if (notes.size == 3) {
           notes(0)
         }
     }.collect.toSet
 
+    println("=============>UserDicSize:" + userDic.size)
+
+    val mergeWordTFDMap = new util.HashMap[String, Double]()
+    val que_2: util.Queue[String] = new util.LinkedList[String]
+    val que_3: util.Queue[String] = new util.LinkedList[String]
+
+    //进行词合并
+    val mergeWordTFMap = new util.HashMap[String, Int]()
+//    val mergeWordTF2WordsMap = new util.HashMap[String, String]()
+    val mergeWordDMap = new util.HashMap[String, Int]()
+//    val wordMap = new util.HashMap[String, Int]()
+
+    var count = 0
+    //统计总词数
+    var wordCount = 0
     val output = input.map {
       f =>
+        val newWordSet = new util.HashSet[String]()
         val notes = f.split("\t")
         val id = notes(0)
         val noteObj = net.sf.json.JSONObject.fromObject(notes(1))
@@ -58,48 +73,61 @@ object NGramSpark {
         val title = noteObj.get("title").toString
         val body = noteObj.get("body").toString
 
-        val titleParse= ToAnalysis.parse(title)
+        val titleParse = ToAnalysis.parse(title)
         val bodyParse = ToAnalysis.parse(body)
 
-        val titleWords = titleParse.map{
-          f=>
-            replaceStr(f.getName)
-        }.filter(f=>f.length > 0)
+        val titleWords = titleParse.map {
+          f =>
+            replaceStr(f.getName.toLowerCase.trim)
+        }.filter(f => f.length > 0)
 
-        val bodyWords = bodyParse.map{
-          f=>
-            replaceStr(f.getName)
-        }.filter(f=>f.length > 0).union(titleWords).mkString(",")
+        val bodyWords = bodyParse.map {
+          f =>
+            replaceStr(f.getName.toLowerCase.trim).trim
+        }.filter(f => f.length > 0).union(titleWords)
 
-        s"${id}\t${bodyWords}"
-    }
+//        //进行单个字词统计
+//        bodyWords.foreach {
+//          f =>
+//            wordCount = wordCount + 1
+//            if (wordMap.containsKey(f)) {
+//              wordMap.put(f, wordMap.get(f) + 1)
+//            } else {
+//              wordMap.put(f, 1)
+//            }
+//        }
 
-    val dateDate = new Date
-    val saveTime = NewTime.dateToString(dateDate, NewTime.`type`)
-
-    //存储基础分词之后的结果
-    output.saveAsTextFile(outputPath + "/" + saveTime + "/splitwords")
-
-    //进行词合并
-    val mergeWordTFMap = new util.HashMap[String, Int]()
-    val mergeWordDMap = new util.HashMap[String, Int]()
-    val mergeWordTFDMap = new util.HashMap[String, Int]()
-
-    val que_2: util.Queue[String] = new util.LinkedList[String]
-    output.map{
-      f=>
-        //用于记录一篇文档中所有的新词
-        val newWordSet = new util.HashSet[String]()
-        val words = f.split("\t")(1).split(",")
-        words.map{
-          j=>
+        //做两词合并
+        bodyWords.foreach {
+          j =>
             que_2.offer(j)
-
-            //合并词，并记录词频
+            //先做2词合并实验，并记录词频，目前只考虑词频  文档频以及 平均文档频
             if (que_2.size() == 2) {
-              val newWord = que_2.mkString("")
+              val newWord2Words = joinWord(que_2, 2)
+              val newWord = newWord2Words._1
               //判断是否在基本字典中
-              if (!userDic.contains(newWord)) {
+              if (!userDic.contains(newWord) && newWord.trim.size != 0) {
+//                //存储组合词和字词关系
+//                mergeWordTF2WordsMap.put(newWord2Words._1, newWord2Words._2)
+                //存储词个数
+                if (mergeWordTFMap.containsKey(newWord)) {
+                  mergeWordTFMap.put(newWord, mergeWordTFMap.get(newWord) + 1)
+                } else {
+                  mergeWordTFMap.put(newWord, 1)
+                }
+                //加入单篇文档新词set
+                newWordSet.add(newWord)
+              }
+            } else if (que_2.size() > 2) {
+              //先移除之前的
+              que_2.poll()
+              val newWord2Words = joinWord(que_2, 2)
+              val newWord = newWord2Words._1
+              //判断是否在基本字典中
+              if (!userDic.contains(newWord) && newWord.trim.size != 0) {
+//                //存储组合词和字词关系
+//                mergeWordTF2WordsMap.put(newWord2Words._1, newWord2Words._2)
+                //存储词个数
                 if (mergeWordTFMap.containsKey(newWord)) {
                   mergeWordTFMap.put(newWord, mergeWordTFMap.get(newWord) + 1)
                 } else {
@@ -109,48 +137,188 @@ object NGramSpark {
                 newWordSet.add(newWord)
               }
             }
+        }
 
-            //移除队列尾部词
-            if (que_2.size() > 2) {
-              que_2.poll()
+        //做三词合并
+        bodyWords.foreach {
+          j =>
+            que_3.offer(j)
+            //先做2词合并实验，并记录词频，目前只考虑词频  文档频以及 平均文档频
+            if (que_3.size() == 3) {
+              val newWord2Words = joinWord(que_3, 3)
+              val newWord = newWord2Words._1
+              //判断是否在基本字典中
+              if (!userDic.contains(newWord) && newWord.trim.size != 0) {
+//                //存储组合词和字词关系
+//                mergeWordTF2WordsMap.put(newWord2Words._1, newWord2Words._2)
+                //存储词个数
+                if (mergeWordTFMap.containsKey(newWord)) {
+                  mergeWordTFMap.put(newWord, mergeWordTFMap.get(newWord) + 1)
+                } else {
+                  mergeWordTFMap.put(newWord, 1)
+                }
+                //加入单篇文档新词set
+                newWordSet.add(newWord)
+              }
+            } else if (que_3.size() > 3) {
+              //先移除之前的
+              que_3.poll()
+              val newWord2Words = joinWord(que_3, 3)
+              val newWord = newWord2Words._1
+              //判断是否在基本字典中
+              if (!userDic.contains(newWord) && newWord.trim.size != 0) {
+                if (mergeWordTFMap.containsKey(newWord)) {
+                  mergeWordTFMap.put(newWord, mergeWordTFMap.get(newWord) + 1)
+                } else {
+                  mergeWordTFMap.put(newWord, 1)
+                }
+                //加入单篇文档新词set
+                newWordSet.add(newWord)
+              }
             }
         }
 
         //计算文档频
-        newWordSet.map{
-          f=>
+        newWordSet.foreach {
+          f =>
             if (mergeWordDMap.containsKey(f)) {
               mergeWordDMap.put(f, mergeWordDMap.get(f) + 1)
             } else {
               mergeWordDMap.put(f, 1)
             }
         }
+
+        if (count % 5000 == 0) {
+          println("Begin--------------------------------------------------------")
+          println("=============>count:" + count)
+          println("=============>mergeWordTFMapSize:" + mergeWordTFMap.size())
+          println("=============>mergeWordDMapSize:" + mergeWordDMap.size())
+          println("End--------------------------------------------------------")
+        }
+
+        count = count + 1
+        s"${id}\t${bodyWords.mkString(",")}"
     }
 
+    println("=============>OutputSize:" + output.size)
+
+    val dateDate = new Date
+    val saveTime = NewTime.dateToString(dateDate, NewTime.`type`)
+
+    //存储基础分词之后的结果
+    sc.parallelize(output.toSeq).saveAsTextFile(outputPath + "/" + saveTime + "/splitwords")
+
     //进行TF词频，文档排序输出
-    sc.parallelize(mergeWordTFMap.toSeq.sortBy{case(word,freq) => freq}).saveAsTextFile(outputPath + "/" + saveTime + "/tfNewWord")
-    sc.parallelize(mergeWordDMap.toSeq.sortBy{case(word,freq) => freq}).saveAsTextFile(outputPath + "/" + saveTime + "/dNewWord")
+    val scTFMap = mergeWordTFMap.toSeq.sortBy {
+      case (word, freq) => freq
+    }.filter(_._2 > 1)
+    println("=============>MergeWordTFMapSize:" + scTFMap.size())
+    sc.parallelize(scTFMap).saveAsTextFile(outputPath + "/" + saveTime + "/tfNewWord")
+
+    //进行文档频存储
+    val scDMap = mergeWordDMap.toSeq.sortBy {
+      case (word, freq) => freq
+    }.filter(_._2 > 1)
+    println("=============>MergeWordDMapSize:" + scDMap.size())
+    sc.parallelize(scDMap).saveAsTextFile(outputPath + "/" + saveTime + "/dNewWord")
 
     //进行平均词频计算
-    mergeWordDMap.map{
-      f=>
+    scDMap.foreach {
+      f =>
         if (mergeWordTFMap.containsKey(f._1) && f._2 != 0) {
-          mergeWordTFDMap.put(f._1, mergeWordTFMap.get(f._1) / f._2)
+          mergeWordTFDMap.put(f._1, mergeWordTFMap.get(f._1).toDouble / f._2.toDouble)
         }
     }
 
     //进行平均文档频计算存储
-    sc.parallelize(mergeWordTFDMap.toSeq.sortBy{case(word, freq) => freq}).saveAsTextFile(outputPath + "/" + saveTime + "/tfdNewWord")
+    val scTFDMap = mergeWordTFDMap.toSeq.sortBy {
+      case (word, freq) => freq
+    }.filter(_._2 > 1)
+    println("=============>MergeWordTFDMapSize:" + scTFDMap.size())
+    sc.parallelize(scTFDMap).saveAsTextFile(outputPath + "/" + saveTime + "/tfdNewWord")
+
+//    //计算单个字词的概率
+//    val wordRateMap = new util.HashMap[String, Double]()
+//    wordMap.foreach {
+//      f =>
+//        wordRateMap.put(f._1, f._2 / wordCount)
+//    }
+//    //计算组合词概率
+//    val wordTfdRateMap = new util.HashMap[String, Double]()
+//    scTFMap.foreach {
+//      f =>
+//        wordRateMap.put(f._1, f._2 / wordCount)
+//    }
+//    //计算组合词概率和 字词乘积和
+//    val proRate = new util.HashMap[String, Double]()
+//    mergeWordTF2WordsMap.filter(f=>scTFMap.contains(f._1)).foreach {
+//      f =>
+//        var rate : Double = 1.0
+//        f._2.split("\t").foreach{
+//          g =>
+//            rate = rate * wordRateMap.get(g)
+//        }
+//        proRate.put(f._1, wordTfdRateMap.get(f._1) / rate)
+//    }
+//
+//    //保存概率比
+//    sc.parallelize(proRate.toSeq).saveAsTextFile(outputPath + "/" + saveTime + "/proRate")
 
     sc.stop()
   }
 
+  //合并新词
+  def joinWord(que: util.Queue[String], num: Int): (String, String) = {
+    val que_ret: util.Queue[String] = que
+    if (num == 2) {
+      val word1 = que_ret.poll()
+      val word2 = que_ret.poll()
+      if ((CharUtil.isNumeric(word1) || CharUtil.isNumeric(word2))
+        || (word1.equals("的") || word2.equals("的"))) {
+        ("", que_ret.mkString("\t"))
+      } else if ((word1.equals("-") || (word2.equals("-"))) || (word1.equals("_") || word2.equals("_"))) {
+        ("", que_ret.mkString("\t"))
+      } else {
+        if (!CharUtil.isChinese(word1) && !CharUtil.isChinese(word2)) {
+          (word1 + " " + word2, que_ret.mkString("\t"))
+        } else {
+          (word1 + word2, que_ret.mkString("\t"))
+        }
+      }
+    } else if (num == 3) {
+      val word1 = que_ret.poll()
+      val word2 = que_ret.poll()
+      val word3 = que_ret.poll()
+      if ((CharUtil.isNumeric(word1) || CharUtil.isNumeric(word2) || CharUtil.isNumeric(word3))
+        || (word1.equals("的") || word2.equals("的") || word3.equals("的"))) {
+        ("", que_ret.mkString("\t"))
+      } else if (word1.equals("-") || word1.equals("_") || word3.equals("-") || word3.equals("_")) {
+        ("", que_ret.mkString("\t"))
+      } else if (!CharUtil.isChinese(word1) && !CharUtil.isChinese(word2) && !CharUtil.isChinese(word3)
+        && (word2.equals("-") || word2.equals("_"))) {
+        (word1 + word2 + word3, que_ret.mkString("\t"))
+      } else if (!CharUtil.isChinese(word1) && !CharUtil.isChinese(word2) && !CharUtil.isChinese(word3)
+        && (!word2.equals("-") && !word2.equals("_"))) {
+        (word1 + " " + word2 + " " + word3, que_ret.mkString("\t"))
+      } else {
+        (word1 + word2 + word3, que_ret.mkString("\t"))
+      }
+    } else {
+      (que_ret.mkString(""), que_ret.mkString("\t"))
+    }
+
+  }
+
   //特殊字符去除
   def replaceStr(str: String) = {
-    val regEx = "[`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]"
-    val pattern = Pattern.compile(regEx)
-    val matcher = pattern.matcher(str)
-    matcher.replaceAll("").trim
+    if (!CharUtil.isChinese(str) && !str.equals("-") && !str.equals("_") && str.size <= 1) {
+      ""
+    } else {
+      val regEx = "[`~!@#$%^&*()+=|{}':→;ˇ'\\\\,\\[\\].<>/?~！≤@#￥%《》ø━……&*（）——+|{}【】‘；：”“’。，、？]"
+      val pattern = Pattern.compile(regEx)
+      val matcher = pattern.matcher(str)
+      matcher.replaceAll("").trim
+    }
   }
 
 }
