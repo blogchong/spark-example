@@ -110,7 +110,7 @@
 * 上传到spark中。<br>
 
 ###3.3 执行代码
-* 执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.AlsArithmeticPractice  --master spark://192.168.5.200:7077  --num-executors 2 --driver-memory 400m --executor-memory 400m --total-executor-cores 2  /root/spark/hcy/spark-example.jar`<br>
+* 执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.ALSRecommendMovie.AlsArithmeticPractice  --master spark://192.168.5.200:7077  --num-executors 2 --driver-memory 400m --executor-memory 400m --total-executor-cores 2  /root/spark/hcy/spark-example.jar`<br>
 //需要注意的是，在设置core数以及内存时，最好先参考一下spark-master-id:8080页面中的worker参数，别超过了就行。<br>
 * 跑完了，直接到输出文件夹下，找到代码的输出结果即可。<br>
 
@@ -125,18 +125,18 @@
 
 ###执行命令  
 
-* 训练执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.CSDN.LDAModelBuild --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 6G --driver-memory 6G --num-executors 4 --executor-cores 4 --jars /root/hcyLda/spark-example-1.0-SNAPSHOT.jar XX PdataPath /hcy/lda/train/part-r-00000-write PmodelPath /hcy/lda/model PtopicSize 100 PmaxIterations 100 PwordsPath /hcy/lda/train/extract_index.dic PsaveVector true > ~/hcyLda/20151219.log 2>&1`  
+* 训练执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.LdaExtractTopics.Train.LDAModelBuild --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 6G --driver-memory 6G --num-executors 4 --executor-cores 4 --jars /root/hcyLda/spark-example-1.0-SNAPSHOT.jar XX PdataPath /hcy/lda/train/part-r-00000-write PmodelPath /hcy/lda/model PtopicSize 100 PmaxIterations 100 PwordsPath /hcy/lda/train/extract_index.dic PsaveVector true > ~/hcyLda/20151219.log 2>&1`  
 
 > 利用上面训练得到的LocalLDAMoldel，进行新文档的主题预测求docs-topics矩阵，然后结合Model中已有的Topics-words矩阵，求docs-words矩阵
 
 * 测试执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.CheckOut.PredictsDocTopics --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 6G --driver-memory 6G --num-executors 1 --executor-cores 1 --jars /root/hcyLda/spark-example-1.0-SNAPSHOT.jar XX PdataPath /hcy/lda/data/test.data PmodelPath /hcy/lda/model/2015-12-23-23-32-00/localLdaModel PtopicsPath /hcy/lda/data PtopicSize 200 PwordsPath /hcy/lda/train/extract_index.dic > ~/hcyLda/201512231544.log 2>&1`
 
-##5 新词发现
+##5 新词发现(基于Ansj工具)
 
 ###执行命令  
 
-* 训练执行命令`./spark-submit --class com.blogchong.spark.mllib.newWord.GetNewWord --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 3G --driver-memory 3G --num-executors 1 --executor-cores 1 --jars /root/hcyLda/newWord/spark-example-1.0-SNAPSHOT.jar,/root/hcyLda/newWord/ansj_seg-0.9.jar,/root/hcyLda/newWord/tree_split-1.0.1.jar --driver-library-path /root/hcyLda/newWord/ansj_seg-0.9.jar /root/hcyLda/newWord/tree_split-1.0.1.jar /hcy/newWord/data/11 /hcy/newWord/result`  
+* 训练执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.DiscoveryNewWord.GetNewWord --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 3G --driver-memory 3G --num-executors 1 --executor-cores 1 --jars /root/hcyLda/newWord/spark-example-1.0-SNAPSHOT.jar,/root/hcyLda/newWord/ansj_seg-0.9.jar,/root/hcyLda/newWord/tree_split-1.0.1.jar --driver-library-path /root/hcyLda/newWord/ansj_seg-0.9.jar /root/hcyLda/newWord/tree_split-1.0.1.jar /hcy/newWord/data/11 /hcy/newWord/result`  
 
-##6 新词发现2
+##6 新词发现(基于NGram算法的Spark实现)
 ###执行命令
-* 执行命令`./spark-submit --class com.blogchong.spark.mllib.newWord.NGramSpark --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 6G --driver-memory 18G --num-executors 3 --executor-cores 3 --jars /root/hcyLda/newWord/spark-example-1.0-SNAPSHOT.jar,/root/hcyLda/newWord/ansj_seg-0.9.jar,/root/hcyLda/newWord/tree_split-1.0.1.jar,/root/hcyLda/newWord/json-lib-2.4-jdk13.jar,/root/hcyLda/newWord/ezmorph-1.0.6.jar /root/hcyLda/newWord/spark-example-1.0-SNAPSHOT.jar /hcy/newWord/data/userLibrary.dic /hcy/newWord/data/11 /hcy/newWord/result > ~/hcyLda/newWord/20160118.log`
+* 执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.DiscoveryNewWord.NGramSpark --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 6G --driver-memory 18G --num-executors 3 --executor-cores 3 --jars /root/hcyLda/newWord/spark-example-1.0-SNAPSHOT.jar,/root/hcyLda/newWord/ansj_seg-0.9.jar,/root/hcyLda/newWord/tree_split-1.0.1.jar,/root/hcyLda/newWord/json-lib-2.4-jdk13.jar,/root/hcyLda/newWord/ezmorph-1.0.6.jar /root/hcyLda/newWord/spark-example-1.0-SNAPSHOT.jar /hcy/newWord/data/userLibrary.dic /hcy/newWord/data/11 /hcy/newWord/result > ~/hcyLda/newWord/20160118.log`

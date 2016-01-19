@@ -10,7 +10,7 @@ import org.apache.spark.mllib.linalg.Vectors
  * Blog:    www.blogchong.com
  * Mailbox: blogchong@163.com
  * Data:    2015/10/30
- * Describe:K-meams聚类算法
+ * Describe:K-meams聚类算法基本实例
  */
 object Kmeans {
   def main(args: Array[String]) {
