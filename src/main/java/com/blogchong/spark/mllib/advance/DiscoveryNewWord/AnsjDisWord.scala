@@ -1,4 +1,4 @@
-package com.blogchong.spark.mllib.newWord
+package com.blogchong.spark.mllib.advance.DiscoveryNewWord
 
 import org.apache.spark.{SparkContext, SparkConf}
 import scala.util.parsing.json.JSONObject
@@ -12,9 +12,9 @@ import org.ansj.splitWord.analysis.NlpAnalysis
  * Blog:    www.blogchong.com
  * Mailbox: blogchong@163.com
  * Data:    2016/1/10
- * Describe: ansj工具新词发现
+ * Describe: ansj工具新词发现实验
  */
-object GetNewWord {
+object AnsjDisWord {
   def main(args: Array[String]) {
     // 设置运行环境
     val conf = new SparkConf().setAppName("新词发现")
@@ -30,7 +30,7 @@ object GetNewWord {
 
     list.map {
       k =>
-        //获取初始数据
+      //获取初始数据
         val input = sc.textFile(inputPath)
 
         println("InputSize:" + input.count())
