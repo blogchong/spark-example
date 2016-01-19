@@ -9,7 +9,7 @@ import com.blogchong.util.NewTime
 import java.util
 
 /**
- *
+ *LDA主题词 新文档主题推测，然后进行校验
  */
 object PredictsDocTopics {
   def main(args: Array[String]) = {

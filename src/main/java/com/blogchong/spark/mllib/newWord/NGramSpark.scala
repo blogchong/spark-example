@@ -14,7 +14,7 @@ import org.apache.log4j.Logger
  * Blog:    www.blogchong.com
  * Mailbox: blogchong@163.com
  * Data:    2016/1/12
- * Describe: NGram算法
+ * Describe: NGram算法 - 新词发现
  */
 object NGramSpark {
 
@@ -120,6 +120,7 @@ object NGramSpark {
                 }
                 //加入单篇文档新词set
                 newWordSet.add(newWord)
+                wordCount = wordCount + 1
               }
             } else if (que_2.size() > 2) {
               //先移除之前的
@@ -138,6 +139,7 @@ object NGramSpark {
                 }
                 //加入单篇文档新词set
                 newWordSet.add(newWord)
+                wordCount = wordCount + 1
               }
             }
         }
@@ -162,6 +164,7 @@ object NGramSpark {
                 }
                 //加入单篇文档新词set
                 newWordSet.add(newWord)
+                wordCount = wordCount + 1
               }
             } else if (que_3.size() > 3) {
               //先移除之前的
@@ -177,6 +180,7 @@ object NGramSpark {
                 }
                 //加入单篇文档新词set
                 newWordSet.add(newWord)
+                wordCount = wordCount + 1
               }
             }
         }

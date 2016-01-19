@@ -12,7 +12,7 @@ import org.ansj.splitWord.analysis.NlpAnalysis
  * Blog:    www.blogchong.com
  * Mailbox: blogchong@163.com
  * Data:    2016/1/10
- * Describe: 薪酬发现
+ * Describe: ansj工具新词发现
  */
 object GetNewWord {
   def main(args: Array[String]) {
@@ -30,9 +30,6 @@ object GetNewWord {
 
     list.map {
       k =>
-      //工具初始化
-      //    val learnTool: LearnTool = new LTSerializa().learnTool
-//        val learnTool = LTSerializa2.getTool
         //获取初始数据
         val input = sc.textFile(inputPath)
 
