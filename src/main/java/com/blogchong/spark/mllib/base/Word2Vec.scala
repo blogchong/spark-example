@@ -9,7 +9,7 @@ import org.apache.spark.mllib.feature.{Word2Vec, Word2VecModel}
  * Blog:    www.blogchong.com
  * Mailbox: blogchong@163.com
  * Data:    2015/11/23
- * Describe: 特征抽取Word2Vec算法
+ * Describe: 特征抽取Word2Vec算法 基础实例
  */
 object Word2Vec {
 

@@ -14,7 +14,7 @@ import org.ansj.splitWord.analysis.NlpAnalysis
  * Data:    2016/1/10
  * Describe: ansj工具新词发现实验
  */
-object AnsjDisWord {
+object AnsjDisWords {
   def main(args: Array[String]) {
     // 设置运行环境
     val conf = new SparkConf().setAppName("新词发现")
@@ -30,7 +30,7 @@ object AnsjDisWord {
 
     list.map {
       k =>
-      //获取初始数据
+        //获取初始数据
         val input = sc.textFile(inputPath)
 
         println("InputSize:" + input.count())
