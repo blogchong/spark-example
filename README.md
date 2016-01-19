@@ -135,7 +135,7 @@
 
 ###执行命令  
 
-* 训练执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.DiscoveryNewWord.GetNewWord --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 3G --driver-memory 3G --num-executors 1 --executor-cores 1 --jars /root/hcyLda/newWord/spark-example-1.0-SNAPSHOT.jar,/root/hcyLda/newWord/ansj_seg-0.9.jar,/root/hcyLda/newWord/tree_split-1.0.1.jar --driver-library-path /root/hcyLda/newWord/ansj_seg-0.9.jar /root/hcyLda/newWord/tree_split-1.0.1.jar /hcy/newWord/data/11 /hcy/newWord/result`  
+* 训练执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.DiscoveryNewWord.AnsjDisWords --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 3G --driver-memory 3G --num-executors 1 --executor-cores 1 --jars /root/hcyLda/newWord/spark-example-1.0-SNAPSHOT.jar,/root/hcyLda/newWord/ansj_seg-0.9.jar,/root/hcyLda/newWord/tree_split-1.0.1.jar --driver-library-path /root/hcyLda/newWord/ansj_seg-0.9.jar /root/hcyLda/newWord/tree_split-1.0.1.jar /hcy/newWord/data/11 /hcy/newWord/result`  
 
 ##6 新词发现(基于NGram算法的Spark实现)
 ###执行命令
