@@ -245,6 +245,8 @@ object NGramSpark {
     sc.parallelize(scTFDMap).saveAsTextFile(outputPath + "/" + saveTime + "/tfdNewWord")
 
     //////////////////////////////////计算凝固度////////////////////////////////////////////////////////////
+    sc.parallelize(wordMap.toSeq).saveAsTextFile(outputPath + "/" + saveTime + "/wordMap")
+
     //计算单个字词的概率
     val wordRateMap = new util.HashMap[String, Double]()
     wordMap.foreach {
@@ -252,6 +254,9 @@ object NGramSpark {
         wordRateMap.put(f._1, f._2 / wordCount)
     }
     println("=============>全量子词概率WordRateMapSize:" + wordRateMap.size())
+    sc.parallelize(wordRateMap.toSeq.sortBy{
+      case (word, freq) => freq
+    }).saveAsTextFile(outputPath + "/" + saveTime + "/wordRateMap")
 
     //计算组合词概率，只计算过了TFD阈值的词
     val wordTfdRateMap = new util.HashMap[String, Double]()
@@ -260,6 +265,9 @@ object NGramSpark {
         wordTfdRateMap.put(f._1, f._2 / wordCount)
     }
     println("=============>新词组合概率(过了TFD阈值)WordTfdRateMapSize:" + wordTfdRateMap.size())
+    sc.parallelize(wordTfdRateMap.toSeq.sortBy{
+      case (word, freq) => freq
+    }).saveAsTextFile(outputPath + "/" + saveTime + "/wordTfdRateMap")
 
     //计算组合词概率和 字词乘积和
     val proRate = new util.HashMap[String, Double]()

@@ -125,11 +125,13 @@
 
 ###执行命令  
 
+> 批量文档训练：获取训练文档的Docs-Topics概率矩阵，以及Words-Topics概率矩阵，当然，还有Model文件，这是后期预测新文档的基础.
+
 * 训练执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.LdaExtractTopics.Train.LDAModelBuild --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 6G --driver-memory 6G --num-executors 4 --executor-cores 4 --jars /root/hcyLda/spark-example-1.0-SNAPSHOT.jar XX PdataPath /hcy/lda/train/part-r-00000-write PmodelPath /hcy/lda/model PtopicSize 100 PmaxIterations 100 PwordsPath /hcy/lda/train/extract_index.dic PsaveVector true > ~/hcyLda/20151219.log 2>&1`  
 
-> 利用上面训练得到的LocalLDAMoldel，进行新文档的主题预测求docs-topics矩阵，然后结合Model中已有的Topics-words矩阵，求docs-words矩阵
+> 新文档主题预测：利用上面训练得到的LocalLDAMoldel，进行新文档的主题预测，求docs-topics矩阵，然后结合Model中已有的Topics-words矩阵，求docs-words矩阵
 
-* 测试执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.CheckOut.PredictsDocTopics --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 6G --driver-memory 6G --num-executors 1 --executor-cores 1 --jars /root/hcyLda/spark-example-1.0-SNAPSHOT.jar XX PdataPath /hcy/lda/data/test.data PmodelPath /hcy/lda/model/2015-12-23-23-32-00/localLdaModel PtopicsPath /hcy/lda/data PtopicSize 200 PwordsPath /hcy/lda/train/extract_index.dic > ~/hcyLda/201512231544.log 2>&1`
+* 测试执行命令`./spark-submit --class com.blogchong.spark.mllib.advance.LdaExtractTopics.Check.PredictsDocTopics --master spark://192.168.25.10:7077 --conf "spark.driver.extraJavaOptions=-XX:MaxPermSize=512m" --conf "spark.executor.extraJavaOptions=-XX:MaxPermSize=512m" --executor-memory 6G --driver-memory 6G --num-executors 1 --executor-cores 1 --jars /root/hcyLda/spark-example-1.0-SNAPSHOT.jar XX PdataPath /hcy/lda/data/test.data PmodelPath /hcy/lda/model/2015-12-23-23-32-00/localLdaModel PtopicsPath /hcy/lda/data PtopicSize 200 PwordsPath /hcy/lda/train/extract_index.dic > ~/hcyLda/201512231544.log 2>&1`
 
 ##5 新词发现(基于Ansj工具)
 
