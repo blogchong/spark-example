@@ -110,7 +110,7 @@ object NGramSpark {
               val newWord = newWord2Words._1
               //判断是否在基本字典中
               if (!userDic.contains(newWord) && newWord.trim.size != 0) {
-//                //存储组合词和字词关系
+                //存储组合词和字词关系
                 mergeWordTF2WordsMap.put(newWord2Words._1, newWord2Words._2)
                 //存储词个数
                 if (mergeWordTFMap.containsKey(newWord)) {
@@ -129,7 +129,7 @@ object NGramSpark {
               val newWord = newWord2Words._1
               //判断是否在基本字典中
               if (!userDic.contains(newWord) && newWord.trim.size != 0) {
-//                //存储组合词和字词关系
+                //存储组合词和字词关系
                 mergeWordTF2WordsMap.put(newWord2Words._1, newWord2Words._2)
                 //存储词个数
                 if (mergeWordTFMap.containsKey(newWord)) {
@@ -247,11 +247,13 @@ object NGramSpark {
     //////////////////////////////////计算凝固度////////////////////////////////////////////////////////////
     sc.parallelize(wordMap.toSeq).saveAsTextFile(outputPath + "/" + saveTime + "/wordMap")
 
+    println("=============>词总量wordCount:" + wordCount)
+
     //计算单个字词的概率
     val wordRateMap = new util.HashMap[String, Double]()
     wordMap.foreach {
       f =>
-        wordRateMap.put(f._1, f._2 / wordCount)
+        wordRateMap.put(f._1, f._2.toDouble / wordCount.toDouble)
     }
     println("=============>全量子词概率WordRateMapSize:" + wordRateMap.size())
     sc.parallelize(wordRateMap.toSeq.sortBy{
@@ -262,7 +264,7 @@ object NGramSpark {
     val wordTfdRateMap = new util.HashMap[String, Double]()
     scTFDMap.foreach {
       f =>
-        wordTfdRateMap.put(f._1, f._2 / wordCount)
+        wordTfdRateMap.put(f._1, f._2.toDouble / wordCount.toDouble)
     }
     println("=============>新词组合概率(过了TFD阈值)WordTfdRateMapSize:" + wordTfdRateMap.size())
     sc.parallelize(wordTfdRateMap.toSeq.sortBy{
@@ -270,6 +272,7 @@ object NGramSpark {
     }).saveAsTextFile(outputPath + "/" + saveTime + "/wordTfdRateMap")
 
     //计算组合词概率和 字词乘积和
+    sc.parallelize(mergeWordTF2WordsMap.toSeq).saveAsTextFile(outputPath + "/" + saveTime + "/mergeWordTF2WordsMap")
     val proRate = new util.HashMap[String, Double]()
     wordTfdRateMap.foreach{
       f=>
@@ -284,7 +287,9 @@ object NGramSpark {
     println("=============>计算组合词概率和子词乘积比值ProRateSize:" + proRate.size())
 
     //保存概率比
-    sc.parallelize(proRate.toSeq).saveAsTextFile(outputPath + "/" + saveTime + "/proRate")
+    sc.parallelize(proRate.toSeq.sortBy{
+      case(word, freq) => freq
+    }).saveAsTextFile(outputPath + "/" + saveTime + "/proRate")
 
     sc.stop()
   }
@@ -297,16 +302,14 @@ object NGramSpark {
       val word2 = que_ret.poll()
       if ((CharUtil.isNumeric(word1) || CharUtil.isNumeric(word2))
         || (word1.equals("的") || word2.equals("的"))) {
-        ("", que_ret.mkString("\t"))
+        ("", word1 + "\t" + word2)
       } else if ((word1.equals("-") || (word2.equals("-"))) || (word1.equals("_") || word2.equals("_"))) {
-        ("", que_ret.mkString("\t"))
+        ("", word1 + "\t" + word2)
       } else {
         if (!CharUtil.isChinese(word1) && !CharUtil.isChinese(word2)) {
-          //暂时不处理多个英文词//s的组合
-          (word1 + " " + word2, que_ret.mkString("\t"))
-//          ("", que_ret.mkString("\t"))
+          (word1 + " " + word2, word1 + "\t" + word2)
         } else {
-          (word1 + word2, que_ret.mkString("\t"))
+          (word1 + word2, word1 + "\t" + word2)
         }
       }
     } else if (num == 3) {
@@ -315,22 +318,20 @@ object NGramSpark {
       val word3 = que_ret.poll()
       if ((CharUtil.isNumeric(word1) || CharUtil.isNumeric(word2) || CharUtil.isNumeric(word3))
         || (word1.equals("的") || word2.equals("的") || word3.equals("的"))) {
-        ("", que_ret.mkString("\t"))
+        ("", word1 + "\t" + word2 + "\t" + word3)
       } else if (word1.equals("-") || word1.equals("_") || word3.equals("-") || word3.equals("_")) {
-        ("", que_ret.mkString("\t"))
+        ("", word1 + "\t" + word2 + "\t" + word3)
       } else if (!CharUtil.isChinese(word1) && !CharUtil.isChinese(word2) && !CharUtil.isChinese(word3)
         && (word2.equals("-") || word2.equals("_"))) {
-        (word1 + word2 + word3, que_ret.mkString("\t"))
+        (word1 + word2 + word3, word1 + "\t" + word2 + "\t" + word3)
       } else if (!CharUtil.isChinese(word1) && !CharUtil.isChinese(word2) && !CharUtil.isChinese(word3)
         && (!word2.equals("-") && !word2.equals("_"))) {
-        //暂时对于多个英文词不做处理
-        (word1 + " " + word2 + " " + word3, que_ret.mkString("\t"))
-//        ("", que_ret.mkString("\t"))
+        (word1 + " " + word2 + " " + word3, word1 + "\t" + word2 + "\t" + word3)
       } else {
-        (word1 + word2 + word3, que_ret.mkString("\t"))
+        (word1 + word2 + word3, word1 + "\t" + word2 + "\t" + word3)
       }
     } else {
-      (que_ret.mkString(""), que_ret.mkString("\t"))
+      (que_ret.mkString(""), que.mkString("\t"))
     }
 
   }
